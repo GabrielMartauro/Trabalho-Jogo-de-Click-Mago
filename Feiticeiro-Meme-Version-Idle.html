@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Feiticeiro Preguiçoso  Meme v70</title>
+<style>
+body{margin:0;background:#0f172a;color:#e5e7eb;font-family:Arial}
+header{padding:15px;text-align:center;background:#111827}
+.wrap{max-width:1300px;margin:auto;padding:15px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.card{background:#1f2937;padding:12px;border-radius:12px}
+button{padding:8px;border-radius:8px;border:none;cursor:pointer;width:100%;margin-top:4px}
+h3{margin:4px 0}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><h1> Feiticeiro Preguiçoso Meme v70 </h1></header>
+<div class="wrap">
+<div class="card">
+<div id="stats"></div>
+<button onclick="cast()"> Conjurar Mana</button>
+<button onclick="ascend()"> Transcender</button>
+</div>
+
+<div class="grid">
+<div class="card"><h3> Fazedores de Money</h3><div id="units"></div></div>
+<div class="card"><h3> Melhoramento</h3><div id="upgrades"></div></div>
+<div class="card"><h3> Bicho Ruim</h3><div id="battle"></div><button onclick="attack()">Atacar</button></div>
+<div class="card"><h3> Missões</h3><div id="quests"></div></div>
+<div class="card"><h3> Conquistas</h3><div id="ach"></div></div>
+<div class="card"><h3> Acontecidos</h3><div id="log"></div></div>
+</div>
+</div>
+
+<script>
+let g={
+mana:0,total:0,asc:0,crystals:0,
+units:[
+["Mago Newba",0,10,1],
+["Ness",0,100,8],
+["Mago Patolino",0,1000,60],
+["Pobrin do Thomas",0,10000,400],
+["Deusa Helena",0,100000,3000],
+["Denis",0,1000000,25000],
+["Mago Davy Jones",0,10000000,200000],
+["Mago Osvaldo",0,100000000,1000000],
+["Deusa Helena Auge",0,1000000000,80000000],
+["Itoshi Sae com Perfeição",0,10000000000,600000000]
+],
+up:[
+["Tomo Antigo",500,false,2],
+["Ajuda de Onion",5000,false,2],
+["Biblioteca Viva",50000,false,2],
+["Mana do Mercado livre",500000,false,2],
+["Tem mais na shopee",5000000,false,2],
+["Diretamente do Paraguai",50000000,false,2],
+["Grimório Proibido do Thomas",500000000,false,2],
+["Notebook do Denis",5000000000,false,2],
+["Foice do Stark Ruivinha",50000000000,false,2],
+["Energizadora do Nikolas A. Tesla",500000000000,false,2]
+],
+enemy:{lvl:1,hp:50,max:50},
+ach:[],
+log:["Bem-vindo, mago."],
+questsDone:0
+};
+
+function f(n){
+if(n>=1e12)return (n/1e12).toFixed(1)+"T";
+if(n>=1e9)return (n/1e9).toFixed(1)+"B";
+if(n>=1e6)return (n/1e6).toFixed(1)+"M";
+if(n>=1e3)return (n/1e3).toFixed(1)+"K";
+return Math.floor(n);
+}
+
+function mult(){
+let m=1+g.asc*0.5;
+g.up.forEach(u=>{if(u[2])m*=u[3]});
+return m;
+}
+
+function mps(){
+let p=0;
+g.units.forEach(u=>p+=u[1]*u[3]);
+return p*mult();
+}
+
+function cast(){g.mana+=mult();render();}
+
+function buy(i){
+let u=g.units[i];
+if(g.mana>=u[2]){
+g.mana-=u[2];
+u[1]++;
+u[2]=Math.floor(u[2]*1.16);
+render();
+}
+}
+
+function buyUp(i){
+let u=g.up[i];
+if(!u[2]&&g.mana>=u[1]){
+g.mana-=u[1];
+u[2]=true;
+log("Upgrade comprado: "+u[0]);
+render();
+}
+}
+
+function attack(){
+g.enemy.hp-=Math.max(10,mps()*0.25);
+if(g.enemy.hp<=0){
+let reward=g.enemy.max*3;
+g.mana+=reward;
+g.crystals+=Math.floor(g.enemy.lvl/5);
+g.enemy.lvl++;
+g.enemy.max=Math.floor(g.enemy.max*1.5);
+g.enemy.hp=g.enemy.max;
+log("Monstro derrotado! +" + f(reward)+" mana");
+}
+render();
+}
+
+function ascend(){
+if(g.mana<1000000)return alert("Necessário 1 milhão de mana.");
+g.asc++;
+g.mana=0;
+g.units.forEach((u,i)=>{
+u[1]=0;
+u[2]=[10,100,1000,10000,100000,1000000,10000000,100000000,1000000000,10000000000][i];
+});
+log("Você Transcendeu!");
+render();
+}
+
+function questText(){
+if(g.questsDone===0) return "Junte 1.000 mana";
+if(g.questsDone===1) return "Derrote um monstro nível 5";
+if(g.questsDone===2) return "Tenha 10 Newbas";
+return "Zerou Lek, Congratulations!";
+}
+
+function checkQuest(){
+if(g.questsDone===0 && g.total>=1000){g.mana+=500;g.questsDone++;}
+if(g.questsDone===1 && g.enemy.lvl>=5){g.crystals+=10;g.questsDone++;}
+if(g.questsDone===2 && g.units[0][1]>=10){g.crystals+=25;g.questsDone++;}
+}
+
+function unlock(a){if(!g.ach.includes(a))g.ach.push(a);}
+
+function checkAch(){
+if(g.total>=1000)unlock("Primeiros Passos");
+if(g.total>=100000)unlock("Ta evoluindo hein");
+if(g.enemy.lvl>=10)unlock("Bicho Bruto");
+if(g.asc>=1)unlock("Ascensão");
+}
+
+function log(t){
+g.log.unshift(t);
+g.log=g.log.slice(0,8);
+}
+
+function save(){localStorage.setItem("wizard_v2",JSON.stringify(g));}
+function load(){let s=localStorage.getItem("wizard_v2"); if(s) g=JSON.parse(s);}
+
+function eventRoll(){
+let r=Math.random();
+if(r<0.4){
+let b=Math.max(100,mps()*30);
+g.mana+=b;
+log("☄️ Cometa Arcano: +"+f(b)+" mana");
+}else if(r<0.8){
+g.crystals+=5;
+log("💎 Cristais encontrados");
+}else{
+log("🐉 Um dragão observou sua torre.");
+}
+}
+
+function render(){
+document.getElementById("stats").innerHTML=
+`✨ Mana: ${f(g.mana)}<br>
+🔮 Mana/s: ${f(mps())}<br>
+⭐ Transcendências: ${g.asc}<br>
+💎 Cristai: ${g.crystals}`;
+
+document.getElementById("units").innerHTML=g.units.map((u,i)=>
+`${u[0]} (${u[1]})<br>Custo: ${f(u[2])}<br>+${f(u[3])}/s<br><button onclick='buy(${i})'>Comprar</button><hr>`).join("");
+
+document.getElementById("upgrades").innerHTML=g.up.map((u,i)=>
+`${u[0]} - ${f(u[1])} ${u[2]?"✅":"<button onclick='buyUp("+i+")'>Comprar</button>"}`
+).join("<hr>");
+
+document.getElementById("battle").innerHTML=`👹 Nível ${g.enemy.lvl}<br>HP ${f(g.enemy.hp)} / ${f(g.enemy.max)}`;
+document.getElementById("quests").innerHTML=questText();
+document.getElementById("ach").innerHTML=g.ach.join("<br>");
+document.getElementById("log").innerHTML=g.log.join("<br>");
+checkQuest(); checkAch(); save();
+}
+
+load(); render();
+
+setInterval(()=>{
+let gain=mps()/10;
+g.mana+=gain;
+g.total+=gain;
+render();
+},100);
+
+setInterval(eventRoll,20000);
+</script>
+</body>
+</html>
